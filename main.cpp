@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -6,11 +7,57 @@ void set_cursor(std::ostream& os, int x, int y) {
     os << "\033[" << x << ";" << y << "H";
 }
 
+class Logger {
+    public:
+        void log(std::string message) {
+            std::ofstream log("main_log.txt");
+            log << message + "\n";
+        }
+
+        void log(int a, std::string message = "") {
+            std::ofstream log("main_log.txt");
+            log << a << " " + message + "\n";
+        }
+
+        void log(int a, int b, std::string message = "") {
+            std::ofstream log("main_log.txt");
+            log << a << " " << b << " " + message + "\n";
+        }
+
+        void log(int a, int b, int c, std::string message = "") {
+            std::ofstream log("main_log.txt");
+            log << a << " " << b << " " << c << " " + message + "\n";
+        }
+
+        void log(int a, int b, int c, int d, std::string message = "") {
+            std::ofstream log("main_log.txt");
+            log << a << " " << b << " " << c << " " << d << " " + message + "\n";
+        }
+        
+        void log(int main_field[10][20], int next_shape_field[5][5]) {
+            std::ofstream log("screen_log.txt");
+            for(int i = 0;i < 10;i++) {
+                for(int j = 0;j < 20;j++) {
+                    log << main_field[i][j] << " ";
+                }
+
+                if (i < 5) {
+                    log << " | ";
+                    for (int j = 0;j < 5;j++) {
+                        log << next_shape_field[i][j] << " ";
+                    }
+                }
+            }
+            log << "\n\n";
+        }
+};
+
 class screen {
     private:
         int main_field[10][20] = { 0 };
         int next_shape_field[5][5] = { 0 };
         int score = 0;
+        Logger L;
 
     public:
         void set_score(int cur_score) {
@@ -35,9 +82,10 @@ class screen {
 
         void print(std::string message = "\n") {
             system("clear");
+            L.log(this->main_field, this->next_shape_field);
 
             std::cout << "\n"
-                      << "   Next figure:\n"
+                      << "   Next shape:\n"
                       << "  .___________.\n";
             for (int i = 0;i < 5;i++) {
                 std::cout << "  |";
@@ -66,100 +114,311 @@ class screen {
             std::cout << "'----------------------'\n";
             std::cout << message;
         }
-};
-/*
-class figure {
-    virtual void rotate();
-};
 
-class I_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
-
-    public:
-        void rotate() {
+        void post_shape(shape s) {
 
         }
 };
 
-class J_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
-
+class shape {
     public:
-        void rotate() {
-            
-        }
+        virtual void set(int x1, int y1, int x2, int y2);       /* set shape coord */
+        virtual void get(int &x1, int &y1, int &x2, int &y2);   /* get shape coord */
+        virtual void rotate();
+        virtual void move_left();
+        virtual void move_right();
+        virtual void move_down();
+    protected:
+        Logger L;
 };
 
-class L_shape : public figure {
+class O_shape : public shape {
     private:
         int x1, x2;
         int y1, y2;
+        bool is_horizontal = true;
 
     public:
-        void rotate() {
-
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
         }
-};
 
-class O_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
 
-    public:
         void rotate() {
             
         }
-};
 
-class Z_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
 
-    public:
-        void rotate() {
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
 
+        void move_down() {
+            this->x1--;
+            this->x2--;
         }
 };
 
-class T_shape : public figure {
+class I_shape : public shape {
     private:
         int x1, x2;
         int y1, y2;
+        bool is_horizontal = false;
 
     public:
-        void rotate() {
-            
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
         }
-};
 
-class S_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
-
-    public:
-        void rotate() {
-
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
         }
-};
 
-class I_shape : public figure {
-    private:
-        int x1, x2;
-        int y1, y2;
-
-    public:
         void rotate() {
             
         }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
 };
-*/
+
+class S_shape : public shape {
+    private:
+        int x1, x2;
+        int y1, y2;
+        bool is_horizontal = true;
+
+    public:
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
+        }
+
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
+
+        void rotate() {
+            
+        }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
+};
+
+class Z_shape : public shape {
+    private:
+        int x1, x2;
+        int y1, y2;
+        bool is_horizontal = true;
+
+    public:
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
+        }
+
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
+
+        void rotate() {
+            
+        }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
+};
+
+class L_shape : public shape {
+    private:
+        int x1, x2;
+        int y1, y2;
+        bool is_horizontal = false;
+
+    public:
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
+        }
+
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
+
+        void rotate() {
+            
+        }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
+};
+
+class J_shape : public shape {
+    private:
+        int x1, x2;
+        int y1, y2;
+        bool is_horizontal = false;
+
+    public:
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
+        }
+
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
+
+        void rotate() {
+            
+        }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
+};
+
+class T_shape : public shape {
+    private:
+        int x1, x2;
+        int y1, y2;
+        bool is_horizontal = true;
+
+    public:
+        void set(int x1, int y1, int x2, int y2) {
+            this->x1 = x1;
+            this->y1 = y1;
+            this->x2 = x2;
+            this->y2 = y2;
+        }
+
+        void get(int &x1, int &y1, int &x2, int &y2) {
+            x1 = this->x1;
+            y1 = this->y1;
+            x2 = this->x2;
+            y2 = this->y2;
+        }
+
+        void rotate() {
+            
+        }
+
+        void move_left() {
+            this->y1--;
+            this->y2--;
+        }
+
+        void move_right() {
+            this->y1++;
+            this->y2++;
+        }
+
+        void move_down() {
+            this->x1--;
+            this->x2--;
+        }
+};
+
 
 int main() {
     screen scr;
